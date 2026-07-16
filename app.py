@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+import json
 
 
 APP_DIR = Path(__file__).parent
@@ -15,10 +16,16 @@ DATA_PATH = APP_DIR / "heart.csv"
 
 
 MODEL_PATH = APP_DIR / "models" / "model.pkl"
-
+METRICS_PATH = APP_DIR / "models" / "metrics.json"
 @st.cache_resource
 def load_model():
     return joblib.load(MODEL_PATH)
+@st.cache_data
+def load_metrics():
+    with open(METRICS_PATH, "r") as f:
+        return json.load(f)
+
+metrics = load_metrics()
 
 
 def risk_label(probability: float) -> tuple[str, str]:
@@ -27,7 +34,7 @@ def risk_label(probability: float) -> tuple[str, str]:
     return "Lower predicted risk", "risk-low"
 
 
-st.set_page_config(page_title="CardioCheck", page_icon="+", layout="wide")
+st.set_page_config(page_title="CardioSage", page_icon="+", layout="wide")
 st.markdown(
     """
     <style>
@@ -50,7 +57,7 @@ st.markdown(
     """
     <div class="hero">
       <div class="eyebrow">CARDIOVASCULAR RISK SCREENING</div>
-      <h1>CardioCheck</h1>
+      <h1>CardioSage</h1>
       <p class="subtitle">Enter the available clinical measurements to receive a model-based heart-disease risk estimate.</p>
     </div>
     """,
@@ -97,7 +104,7 @@ if submitted:
             "ST_Slope": st_slope,
         }]
     )
-    probability = float(train_model().predict_proba(input_data)[0][1])
+    probability = float(load_model().predict_proba(input_data)[0][1])
     label, style = risk_label(probability)
     st.markdown(
         f"<div class='result {style}'><h3>{label}</h3><p>Estimated probability: <strong>{probability:.0%}</strong></p></div>",
@@ -105,6 +112,19 @@ if submitted:
     )
 
 st.divider()
+with st.subheader("📊 Model Performance")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Accuracy", f"{metrics['accuracy']:.2%}")
+    col2.metric("Precision", f"{metrics['precision']:.2%}")
+    col3.metric("Recall", f"{metrics['recall']:.2%}")
+
+    col1, col2 = st.columns(2)
+
+    col1.metric("F1 Score", f"{metrics['f1_score']:.2%}")
+    col2.metric("ROC-AUC", f"{metrics['roc_auc']:.2%}")
+
 st.markdown(
     "<p class='note'>Educational demonstration only. This tool is not a medical diagnosis and must not replace advice from a qualified healthcare professional.</p>",
     unsafe_allow_html=True,

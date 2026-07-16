@@ -20,3 +20,15 @@ streamlit run app.py
 The model is trained from `heart.csv` when the app starts, so no separate `.pkl` model files are required.
 
 > This app is an educational project only and does not provide a medical diagnosis.
+
+Model: Logistic Regression
+
+Accuracy : 87%
+
+Precision : 88%
+
+Recall : 85%
+
+F1 Score : 86%
+
+ROC-AUC : 92%
