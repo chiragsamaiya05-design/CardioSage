@@ -112,7 +112,7 @@ if submitted:
     )
 
 st.divider()
-with st.subheader("📊 Model Performance")
+with st.expander("📊 Model Performance")
 
     col1, col2, col3 = st.columns(3)
 
